@@ -1,6 +1,7 @@
 import 'package:cockpit/app/core/terminal/ghostty_font_family.dart';
 import 'package:cockpit/app/core/domain/entities/app_settings.dart';
 import 'package:cockpit/app/core/terminal/terminal_controller.dart';
+import 'package:cockpit/app/core/terminal/terminal_find.dart';
 import 'package:cockpit/app/core/terminal/terminal_font_weight.dart';
 import 'package:cockpit/app/core/terminal/terminal_zoom.dart';
 import 'package:cockpit/app/core/terminal/xterm/xterm.dart' as xterm;
@@ -12,6 +13,7 @@ import 'package:flutter_modular/flutter_modular.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'link_context_menu.dart';
+import 'terminal_find_bar.dart';
 import 'terminal_pane.dart';
 
 /// Renderiza o controller com a view nativa do motor que o criou.
@@ -68,7 +70,11 @@ final class _CockpitPasteIntent extends Intent {
   const _CockpitPasteIntent();
 }
 
-class _GhosttyPane extends StatelessWidget {
+final class _CockpitFindIntent extends Intent {
+  const _CockpitFindIntent();
+}
+
+class _GhosttyPane extends StatefulWidget {
   const _GhosttyPane({
     required this.terminal,
     required this.active,
@@ -90,8 +96,33 @@ class _GhosttyPane extends StatelessWidget {
   final bool readOnly;
 
   @override
+  State<_GhosttyPane> createState() => _GhosttyPaneState();
+}
+
+class _GhosttyPaneState extends State<_GhosttyPane>
+    with TerminalFindHost<_GhosttyPane> {
+  @override
+  FocusNode get terminalFocusNode => widget.focusNode;
+
+  // flterm's search controller does the matching, match painting and
+  // scroll-to-match itself; we only drive it from the find bar.
+  @override
+  TerminalFind createFind() =>
+      GhosttyTerminalFind(widget.terminal.controller.search);
+
+  @override
   Widget build(BuildContext context) {
-    final shortcuts = <ShortcutActivator, Intent>{};
+    final readOnly = widget.readOnly;
+    final onPaste = widget.onPaste;
+    final shortcuts = <ShortcutActivator, Intent>{
+      // ⌘F / Ctrl-F opens the find bar (works even read-only — searching a
+      // frozen buffer is fine). Resolved by the Actions scope below, where
+      // flterm dispatches the shortcuts it receives.
+      const SingleActivator(LogicalKeyboardKey.keyF, meta: true):
+          const _CockpitFindIntent(),
+      const SingleActivator(LogicalKeyboardKey.keyF, control: true):
+          const _CockpitFindIntent(),
+    };
     if (!readOnly && onPaste != null) {
       shortcuts[const SingleActivator(LogicalKeyboardKey.keyV, meta: true)] =
           const _CockpitPasteIntent();
@@ -121,7 +152,12 @@ class _GhosttyPane extends StatelessWidget {
       MediaQuery.devicePixelRatioOf(context),
     );
 
-    final ghosttyTheme = _ghosttyTheme(theme, textStyle, uiScale, fontWeight);
+    final ghosttyTheme = _ghosttyTheme(
+      widget.theme,
+      widget.textStyle,
+      uiScale,
+      fontWeight,
+    );
 
     final Widget terminalView = ghost.TerminalView(
       // IDENTIDADE GLOBAL e estável por sessão (o controller é único por aba).
@@ -134,10 +170,10 @@ class _GhosttyPane extends StatelessWidget {
       // GlobalKey o Flutter MOVE o mesmo Element (preserva o ViewAttachment/
       // lease do controller) em vez de recriar. Junto ao [TerminalUnzoomBox]
       // sem LayoutBuilder, mata crash e espelho.
-      key: GlobalObjectKey(terminal.controller),
-      controller: terminal.controller,
-      presentationActive: active,
-      focusNode: focusNode,
+      key: GlobalObjectKey(widget.terminal.controller),
+      controller: widget.terminal.controller,
+      presentationActive: widget.active,
+      focusNode: widget.focusNode,
       showKeyboard: !readOnly,
       padding: EdgeInsets.zero,
       scrollPhysics: const ClampingScrollPhysics(),
@@ -165,22 +201,39 @@ class _GhosttyPane extends StatelessWidget {
     // `TickerMode` desliga o blink do cursor enquanto oculta. O parser e o
     // scrollback seguem no controller; presentationActive suspende apenas as
     // invalidacoes visuais e faz um layout completo ao reabrir.
-    return Offstage(
-      offstage: !active,
-      child: TickerMode(
-        enabled: active,
-        child: Actions(
-          actions: <Type, Action<Intent>>{
-            _CockpitPasteIntent: CallbackAction<_CockpitPasteIntent>(
-              onInvoke: (_) {
-                onPaste?.call();
-                return null;
+    // StackFit.expand hands the (non-positioned) terminal TIGHT full-size
+    // constraints — same as the old direct return. Without it the Stack's
+    // default loose fit gives flterm's TerminalView slack, and its
+    // performLayout->onResize->setState grid report oscillates into an infinite
+    // relayout (100% CPU). The find bar is a Positioned child, unaffected.
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Offstage(
+          offstage: !widget.active,
+          child: TickerMode(
+            enabled: widget.active,
+            child: Actions(
+              actions: <Type, Action<Intent>>{
+                _CockpitPasteIntent: CallbackAction<_CockpitPasteIntent>(
+                  onInvoke: (_) {
+                    onPaste?.call();
+                    return null;
+                  },
+                ),
+                _CockpitFindIntent: CallbackAction<_CockpitFindIntent>(
+                  onInvoke: (_) {
+                    openFind();
+                    return null;
+                  },
+                ),
               },
+              child: view,
             ),
-          },
-          child: view,
+          ),
         ),
-      ),
+        if (widget.active) buildFindOverlay(),
+      ],
     );
   }
 
@@ -191,7 +244,7 @@ class _GhosttyPane extends StatelessWidget {
       fileLine: file?.line,
       resolvedFilePath: file?.resolvedPath,
       uri: file == null ? link.uri : null,
-      onOpenFile: onOpenFile,
+      onOpenFile: widget.onOpenFile,
     );
   }
 
@@ -208,7 +261,7 @@ class _GhosttyPane extends StatelessWidget {
       fileLine: file?.line,
       resolvedFilePath: file?.resolvedPath,
       uri: file == null ? link.uri : null,
-      onOpenFile: onOpenFile,
+      onOpenFile: widget.onOpenFile,
     );
   }
 }

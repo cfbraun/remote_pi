@@ -2,14 +2,17 @@ import 'dart:io' show Platform;
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/scheduler.dart' show Ticker;
-import 'package:flutter/services.dart' show HardwareKeyboard, KeyEvent;
+import 'package:flutter/services.dart'
+    show HardwareKeyboard, KeyEvent, LogicalKeyboardKey;
 import 'package:flutter/widgets.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:cockpit/app/core/terminal/xterm/xterm.dart';
 
 import 'package:cockpit/app/core/terminal/cockpit_terminal.dart';
 import 'package:cockpit/app/core/terminal/cockpit_terminal_render.dart';
+import 'package:cockpit/app/core/terminal/terminal_find.dart';
 import 'link_context_menu.dart';
+import 'terminal_find_bar.dart';
 import 'terminal_link.dart';
 
 /// Envólucro do [CockpitTerminal] que adiciona **auto-scroll durante a
@@ -55,7 +58,21 @@ class TerminalPane extends StatefulWidget {
 }
 
 class _TerminalPaneState extends State<TerminalPane>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, TerminalFindHost<TerminalPane> {
+  @override
+  FocusNode get terminalFocusNode => widget.focusNode;
+
+  @override
+  TerminalFind createFind() => XtermTerminalFind(
+    terminal: widget.terminal,
+    controller: _controller,
+    scroll: _scroll,
+    // Amber for all matches, a stronger orange for the selected one; both
+    // translucent so they read on either light or dark terminal themes.
+    matchColor: const Color(0x55FFD54F),
+    currentColor: const Color(0x99FF9800),
+  );
+
   final _viewKey = GlobalKey<CockpitTerminalState>();
   final _scroll = ScrollController();
   late final _SelectionGuardController _controller;
@@ -122,6 +139,9 @@ class _TerminalPaneState extends State<TerminalPane>
     _linkHighlight?.dispose();
     _ticker.dispose();
     _anchor?.dispose();
+    // Before _controller/_scroll go: the find controller paints highlights into
+    // them and must let go first (the mixin's own dispose would run too late).
+    teardownFind();
     _scroll.dispose();
     _controller.dispose();
     super.dispose();
@@ -621,8 +641,31 @@ class _TerminalPaneState extends State<TerminalPane>
     );
 
     // O botão de baixar o teclado vive na top bar (sempre visível, fora da área
-    // do teclado) — ver CockpitTopbar. Aqui a pane é só o terminal.
-    return terminal;
+    // do teclado) — ver CockpitTopbar. Aqui a pane é só o terminal. ⌘F abre a
+    // barra de busca no buffer; a ligação fica DENTRO da subárvore do terminal
+    // focado (um binding no nível da página seria engolido pelo foco do
+    // terminal — ver app_menu_bar).
+    // StackFit.expand so the Stack fills the pane regardless of the overlay:
+    // when the find bar is closed buildFindOverlay() is a zero-size
+    // SizedBox.shrink, and a loose Stack would otherwise collapse to it and
+    // render the Positioned.fill terminal at 0x0 (empty pane).
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Positioned.fill(
+          child: CallbackShortcuts(
+            bindings: {
+              const SingleActivator(LogicalKeyboardKey.keyF, meta: true):
+                  openFind,
+              const SingleActivator(LogicalKeyboardKey.keyF, control: true):
+                  openFind,
+            },
+            child: terminal,
+          ),
+        ),
+        buildFindOverlay(),
+      ],
+    );
   }
 }
 
