@@ -230,6 +230,7 @@ class _CockpitPageState extends State<CockpitPage> {
     // foco, então pega mesmo com um terminal focado. Ver [_handlePaneNavKey].
     HardwareKeyboard.instance.addHandler(_handlePaneNavKey);
     HardwareKeyboard.instance.addHandler(_realmKeyHandler);
+    HardwareKeyboard.instance.addHandler(_cycleTabKeyHandler);
     // Mantém os overrides de comando do LSP (tela "Language") em sync com o pool:
     // empurra o estado atual e re-empurra a cada mudança das Configurações.
     _settings = context.read<SettingsController>()
@@ -614,6 +615,7 @@ class _CockpitPageState extends State<CockpitPage> {
     _remoteTaskCtx.clear();
     HardwareKeyboard.instance.removeHandler(_handlePaneNavKey);
     HardwareKeyboard.instance.removeHandler(_realmKeyHandler);
+    HardwareKeyboard.instance.removeHandler(_cycleTabKeyHandler);
     _settings?.removeListener(_syncLspCommands);
     _settings?.removeListener(_syncNotifications);
     _settings?.removeListener(_syncCockpit);
@@ -700,6 +702,29 @@ class _CockpitPageState extends State<CockpitPage> {
       return false;
     }
     unawaited(_vm.cycleRealm(keys.isShiftPressed ? -1 : 1));
+    return true;
+  }
+
+  /// Ctrl+Tab next tab of the focused pane; with Shift, previous. Like
+  /// [_realmKeyHandler], this is a **global** [HardwareKeyboard] handler and not
+  /// a `CallbackShortcuts`: a focused terminal consumes Tab (shell completion —
+  /// `input_map.dart` maps `LogicalKeyboardKey.tab`), so we must see the event
+  /// BEFORE focus distribution and return `true` to swallow it before the PTY.
+  /// Sitting above both engines (Ghostty and xterm), it covers both.
+  ///
+  /// **Ctrl on every platform** (including macOS, where it is ⌃ and not ⌘): that
+  /// is the OS tab-cycling convention. Matches on the physical key; only
+  /// `KeyDownEvent` (no repeat); ignores it when Alt/Meta is also held.
+  bool _cycleTabKeyHandler(KeyEvent event) {
+    if (event is! KeyDownEvent ||
+        event.physicalKey != PhysicalKeyboardKey.tab) {
+      return false;
+    }
+    final keys = HardwareKeyboard.instance;
+    if (!keys.isControlPressed || keys.isAltPressed || keys.isMetaPressed) {
+      return false;
+    }
+    _vm.cycleTabInFocusedPane(keys.isShiftPressed ? -1 : 1);
     return true;
   }
 
