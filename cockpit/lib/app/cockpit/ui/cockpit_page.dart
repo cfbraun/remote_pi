@@ -1420,6 +1420,7 @@ class _TreePanel extends StatelessWidget {
                   focusSignal: searchFocusSignal,
                 ),
           searchFocusSignal: searchFocusSignal,
+          consumePendingSourceControlReveal: vm.consumeSourceControlReveal,
           databasePanel: vm.selectedProject == null
               ? null
               : DbPanel(
