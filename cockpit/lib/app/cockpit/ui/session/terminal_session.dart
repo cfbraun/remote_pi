@@ -329,16 +329,26 @@ class TerminalSession extends PaneItem {
     _setStatus(status);
   }
 
-  /// Detecta o **interrupt** do harness na entrada do usuário. O Claude Code
-  /// (e demais harnesses) interrompem o turno com um `ESC` cru; e o Claude
-  /// Code **não emite `Stop` num interrupt do usuário** — só quando o turno
-  /// termina sozinho. Sem isto, o último hook recebido seria um `working`
-  /// (Pre/PostToolUse) e o spinner giraria pra sempre. Um `ESC` cru (`\x1b`
-  /// sozinho, sem sequência de seta/função) enquanto `working` zera o status
+  /// Reconhece o **ESC** vindo do usuário, no encoding legado (`\x1b` cru) ou no
+  /// do *kitty keyboard protocol* (`CSI 27 u` = `\x1b[27u`, com sufixo opcional
+  /// de modificador/tipo-de-evento: `\x1b[27;1u`, `\x1b[27;1:3u`). O motor
+  /// Ghostty (libghostty) codifica a tecla nativamente: quando o app em primeiro
+  /// plano ativa o protocolo (codex/pi sempre; o Claude Code recente também), o
+  /// ESC deixa de ser `\x1b` e vira a forma CSI-u — por isso casar só `\x1b`
+  /// perdia o interrupt no Ghostty. Pelo `onOutput` só trafegam teclas e
+  /// respostas de query, e nenhuma resposta de query termina em `u`, então casar
+  /// `27…u` como "ESC" é seguro.
+  static final RegExp _escKey = RegExp(r'^\x1b(\[27(;[\d:;]+)?u)?$');
+
+  /// Detecta o **interrupt** do harness na entrada do usuário. Os harnesses
+  /// interrompem o turno com um ESC; e o Claude Code **não emite `Stop` num
+  /// interrupt do usuário** — só quando o turno termina sozinho. Sem isto, o
+  /// último hook recebido seria um `working` (Pre/PostToolUse) e o spinner
+  /// giraria pra sempre. Um ESC (ver [_escKey]) enquanto `working` zera o status
   /// otimista. Se não era interrupt de fato, o `_staleWorkingGuard` descarta o
   /// `working` mid-turn tardio, e um `UserPromptSubmit` legítimo reacende.
   void _maybeInterrupt(String data) {
-    if (data == '\x1b' && _status == TerminalStatus.working) {
+    if (_status == TerminalStatus.working && _escKey.hasMatch(data)) {
       _turnActive = false;
       _notifyDebounce?.cancel();
       _status = TerminalStatus.idle;

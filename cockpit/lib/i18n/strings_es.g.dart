@@ -129,6 +129,7 @@ class _Translations$cockpit$es extends Translations$cockpit$en {
 	@override late final _Translations$cockpit$topbar$es topbar = _Translations$cockpit$topbar$es._(_root);
 	@override late final _Translations$cockpit$tasks$es tasks = _Translations$cockpit$tasks$es._(_root);
 	@override late final _Translations$cockpit$notifications$es notifications = _Translations$cockpit$notifications$es._(_root);
+	@override late final _Translations$cockpit$terminalLink$es terminalLink = _Translations$cockpit$terminalLink$es._(_root);
 	@override late final _Translations$cockpit$terminal$es terminal = _Translations$cockpit$terminal$es._(_root);
 	@override late final _Translations$cockpit$remoteHost$es remoteHost = _Translations$cockpit$remoteHost$es._(_root);
 	@override late final _Translations$cockpit$browserPane$es browserPane = _Translations$cockpit$browserPane$es._(_root);
@@ -274,6 +275,7 @@ class _Translations$core$menu$es extends Translations$core$menu$en {
 	@override String get file => 'Archivo';
 	@override String get newTerminal => 'Nueva Terminal';
 	@override String get openWorkspace => 'Abrir Workspace';
+	@override String get goToFile => 'Ir a Archivo…';
 	@override String get save => 'Guardar';
 	@override String get discard => 'Descartar';
 	@override String get format => 'Formatear';
@@ -980,6 +982,7 @@ class _Translations$cockpit$findBar$es extends Translations$cockpit$findBar$en {
 	@override String get next => 'Siguiente (⏎)';
 	@override String get close => 'Cerrar (Esc)';
 	@override String get badPattern => 'Patrón inválido';
+	@override String counter({required Object current, required Object total}) => '${current} de ${total}';
 	@override String get noResults => 'Sin resultados';
 }
 
@@ -1038,6 +1041,22 @@ class _Translations$cockpit$notifications$es extends Translations$cockpit$notifi
 	@override String get agentFinished => 'El agente terminó';
 	@override String get open => 'Abrir';
 	@override String get agentNeedsAction => 'El agente necesita tu acción';
+}
+
+// Path: cockpit.terminalLink
+class _Translations$cockpit$terminalLink$es extends Translations$cockpit$terminalLink$en {
+	_Translations$cockpit$terminalLink$es._(TranslationsEs root) : this._root = root, super.internal(root);
+
+	final TranslationsEs _root; // ignore: unused_field
+
+	// Translations
+	@override String get open => 'Abrir';
+	@override String get revealFinder => 'Mostrar en Finder';
+	@override String get revealExplorer => 'Mostrar en el Explorador';
+	@override String get revealFolder => 'Abrir carpeta contenedora';
+	@override String get copyPath => 'Copiar ruta';
+	@override String get openLink => 'Abrir enlace';
+	@override String get copyLink => 'Copiar enlace';
 }
 
 // Path: cockpit.terminal
@@ -1703,6 +1722,9 @@ class _Translations$settings$page$terminal$es extends Translations$settings$page
 	@override String get shellTitle => 'Shell';
 	@override String get shellDesc => 'Qué shell abren las nuevas pestañas de terminal. La flecha junto al + sigue abriendo cualquier otro, solo para esa pestaña.';
 	@override String get noWslMessage => 'No se encontraron distros de WSL. Instala una (wsl.exe --install) y reinicia Cockpit para verla listada aquí.';
+	@override String get sectionBehavior => 'Comportamiento';
+	@override String get closeOnExitTitle => 'Cerrar la pestaña cuando el shell termine';
+	@override String get closeOnExitDesc => 'Cuando un shell termina por sí solo (exit, Ctrl-D), cierra su pestaña en lugar de dejar un terminal muerto.';
 }
 
 // Path: settings.page.appearance
@@ -1912,6 +1934,7 @@ extension on TranslationsEs {
 			'core.menu.file' => 'Archivo',
 			'core.menu.newTerminal' => 'Nueva Terminal',
 			'core.menu.openWorkspace' => 'Abrir Workspace',
+			'core.menu.goToFile' => 'Ir a Archivo…',
 			'core.menu.save' => 'Guardar',
 			'core.menu.discard' => 'Descartar',
 			'core.menu.format' => 'Formatear',
@@ -2392,9 +2415,9 @@ extension on TranslationsEs {
 			'cockpit.sshPrompts.trustHint' => 'Confía solo si esta fingerprint coincide con el servidor. Puedes verificarla en el servidor con:',
 			'cockpit.sshPrompts.trust' => 'Confiar',
 			'cockpit.sshPrompts.sshKeyPassphraseTitle' => 'Frase de contraseña de la clave SSH',
-			'cockpit.sshPrompts.unlockMessage' => ({required Object keyPath, required Object connectionName}) => 'Desbloquea ${keyPath} para conectar "${connectionName}".',
 			_ => null,
 		} ?? switch (path) {
+			'cockpit.sshPrompts.unlockMessage' => ({required Object keyPath, required Object connectionName}) => 'Desbloquea ${keyPath} para conectar "${connectionName}".',
 			'cockpit.sshPrompts.keptInMemoryHint' => 'Se mantiene en memoria hasta que Cockpit se cierre. Para que los agentes usen esta conexión, activa "Guardar frase de contraseña" en la conexión.',
 			'cockpit.sshPrompts.unlock' => 'Desbloquear',
 			'cockpit.projectsRail.workspaces' => 'Workspaces',
@@ -2431,6 +2454,7 @@ extension on TranslationsEs {
 			'cockpit.findBar.next' => 'Siguiente (⏎)',
 			'cockpit.findBar.close' => 'Cerrar (Esc)',
 			'cockpit.findBar.badPattern' => 'Patrón inválido',
+			'cockpit.findBar.counter' => ({required Object current, required Object total}) => '${current} de ${total}',
 			'cockpit.findBar.noResults' => 'Sin resultados',
 			'cockpit.contentSearch.sectionSearch' => 'BÚSQUEDA',
 			'cockpit.contentSearch.searchInFiles' => 'Buscar en los archivos',
@@ -2453,6 +2477,13 @@ extension on TranslationsEs {
 			'cockpit.notifications.agentFinished' => 'El agente terminó',
 			'cockpit.notifications.open' => 'Abrir',
 			'cockpit.notifications.agentNeedsAction' => 'El agente necesita tu acción',
+			'cockpit.terminalLink.open' => 'Abrir',
+			'cockpit.terminalLink.revealFinder' => 'Mostrar en Finder',
+			'cockpit.terminalLink.revealExplorer' => 'Mostrar en el Explorador',
+			'cockpit.terminalLink.revealFolder' => 'Abrir carpeta contenedora',
+			'cockpit.terminalLink.copyPath' => 'Copiar ruta',
+			'cockpit.terminalLink.openLink' => 'Abrir enlace',
+			'cockpit.terminalLink.copyLink' => 'Copiar enlace',
 			'cockpit.terminal.cwdFallbackWarning' => ({required Object requested, required Object path}) => 'Aviso: la carpeta "${requested}" no existe. Esta terminal se abrió en "${path}".',
 			'cockpit.terminal.workspaceEnvTracked' => ({required Object keys}) => 'Aviso: el .env.cockpit está rastreado por git (vino con el repositorio). Inyectado: ${keys}',
 			'cockpit.remoteHost.addHost' => 'Añadir host remoto',
@@ -2720,6 +2751,9 @@ extension on TranslationsEs {
 			'settings.page.terminal.shellTitle' => 'Shell',
 			'settings.page.terminal.shellDesc' => 'Qué shell abren las nuevas pestañas de terminal. La flecha junto al + sigue abriendo cualquier otro, solo para esa pestaña.',
 			'settings.page.terminal.noWslMessage' => 'No se encontraron distros de WSL. Instala una (wsl.exe --install) y reinicia Cockpit para verla listada aquí.',
+			'settings.page.terminal.sectionBehavior' => 'Comportamiento',
+			'settings.page.terminal.closeOnExitTitle' => 'Cerrar la pestaña cuando el shell termine',
+			'settings.page.terminal.closeOnExitDesc' => 'Cuando un shell termina por sí solo (exit, Ctrl-D), cierra su pestaña en lugar de dejar un terminal muerto.',
 			'settings.page.appearance.sectionTheme' => 'Tema',
 			'settings.page.appearance.themeTitle' => 'Tema',
 			'settings.page.appearance.themeDesc' => 'Colores de la app, resaltado de código y paleta del terminal.',
@@ -2895,6 +2929,8 @@ extension on TranslationsEs {
 			'theme.error.reservedId' => 'Este tema usa el id de un tema nativo. Cambia el "id" en el archivo e impórtalo de nuevo.',
 			'theme.error.notAnObject' => ({required Object field}) => 'Se esperaba un objeto en "${field}".',
 			'theme.error.missingField' => ({required Object field}) => 'Falta el campo obligatorio "${field}".',
+			_ => null,
+		} ?? switch (path) {
 			'theme.error.badColor' => ({required Object value, required Object field}) => '"${value}" en "${field}" no es un color. Usa #RGB, #RRGGBB o #RRGGBBAA.',
 			'theme.error.unknownBase' => ({required Object value}) => 'Tema base "${value}" desconocido en "extends".',
 			'theme.error.noVariants' => 'El tema no declara ningún variant. Añade "dark", "light" o ambos en "variants".',

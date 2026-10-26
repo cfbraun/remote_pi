@@ -129,6 +129,7 @@ class _Translations$cockpit$pt_BR extends Translations$cockpit$en {
 	@override late final _Translations$cockpit$topbar$pt_BR topbar = _Translations$cockpit$topbar$pt_BR._(_root);
 	@override late final _Translations$cockpit$tasks$pt_BR tasks = _Translations$cockpit$tasks$pt_BR._(_root);
 	@override late final _Translations$cockpit$notifications$pt_BR notifications = _Translations$cockpit$notifications$pt_BR._(_root);
+	@override late final _Translations$cockpit$terminalLink$pt_BR terminalLink = _Translations$cockpit$terminalLink$pt_BR._(_root);
 	@override late final _Translations$cockpit$terminal$pt_BR terminal = _Translations$cockpit$terminal$pt_BR._(_root);
 	@override late final _Translations$cockpit$remoteHost$pt_BR remoteHost = _Translations$cockpit$remoteHost$pt_BR._(_root);
 	@override late final _Translations$cockpit$browserPane$pt_BR browserPane = _Translations$cockpit$browserPane$pt_BR._(_root);
@@ -274,6 +275,7 @@ class _Translations$core$menu$pt_BR extends Translations$core$menu$en {
 	@override String get file => 'Arquivo';
 	@override String get newTerminal => 'Novo Terminal';
 	@override String get openWorkspace => 'Abrir Workspace';
+	@override String get goToFile => 'Ir para Arquivo…';
 	@override String get save => 'Salvar';
 	@override String get discard => 'Descartar';
 	@override String get format => 'Formatar';
@@ -980,6 +982,7 @@ class _Translations$cockpit$findBar$pt_BR extends Translations$cockpit$findBar$e
 	@override String get next => 'Próximo (⏎)';
 	@override String get close => 'Fechar (Esc)';
 	@override String get badPattern => 'Padrão inválido';
+	@override String counter({required Object current, required Object total}) => '${current} de ${total}';
 	@override String get noResults => 'Nenhum resultado';
 }
 
@@ -1038,6 +1041,22 @@ class _Translations$cockpit$notifications$pt_BR extends Translations$cockpit$not
 	@override String get agentFinished => 'Agente terminou';
 	@override String get open => 'Abrir';
 	@override String get agentNeedsAction => 'Agente precisa de você';
+}
+
+// Path: cockpit.terminalLink
+class _Translations$cockpit$terminalLink$pt_BR extends Translations$cockpit$terminalLink$en {
+	_Translations$cockpit$terminalLink$pt_BR._(TranslationsPtBr root) : this._root = root, super.internal(root);
+
+	final TranslationsPtBr _root; // ignore: unused_field
+
+	// Translations
+	@override String get open => 'Abrir';
+	@override String get revealFinder => 'Mostrar no Finder';
+	@override String get revealExplorer => 'Mostrar no Explorer';
+	@override String get revealFolder => 'Abrir pasta';
+	@override String get copyPath => 'Copiar caminho';
+	@override String get openLink => 'Abrir link';
+	@override String get copyLink => 'Copiar link';
 }
 
 // Path: cockpit.terminal
@@ -1703,6 +1722,9 @@ class _Translations$settings$page$terminal$pt_BR extends Translations$settings$p
 	@override String get shellTitle => 'Shell';
 	@override String get shellDesc => 'Qual shell novas abas de terminal abrem. A seta ao lado do + ainda abre qualquer outro, só para aquela aba.';
 	@override String get noWslMessage => 'Nenhuma distro WSL encontrada. Instale uma (wsl.exe --install) e reinicie o Cockpit para vê-la listada aqui.';
+	@override String get sectionBehavior => 'Comportamento';
+	@override String get closeOnExitTitle => 'Fechar a aba quando o shell encerrar';
+	@override String get closeOnExitDesc => 'Quando um shell termina sozinho (exit, Ctrl-D), fecha a aba em vez de deixar um terminal morto.';
 }
 
 // Path: settings.page.appearance
@@ -1912,6 +1934,7 @@ extension on TranslationsPtBr {
 			'core.menu.file' => 'Arquivo',
 			'core.menu.newTerminal' => 'Novo Terminal',
 			'core.menu.openWorkspace' => 'Abrir Workspace',
+			'core.menu.goToFile' => 'Ir para Arquivo…',
 			'core.menu.save' => 'Salvar',
 			'core.menu.discard' => 'Descartar',
 			'core.menu.format' => 'Formatar',
@@ -2392,9 +2415,9 @@ extension on TranslationsPtBr {
 			'cockpit.sshPrompts.trustHint' => 'Confie apenas se esta fingerprint corresponder ao servidor. Você pode verificar no servidor com:',
 			'cockpit.sshPrompts.trust' => 'Confiar',
 			'cockpit.sshPrompts.sshKeyPassphraseTitle' => 'Senha da chave SSH',
-			'cockpit.sshPrompts.unlockMessage' => ({required Object keyPath, required Object connectionName}) => 'Desbloqueie ${keyPath} para conectar "${connectionName}".',
 			_ => null,
 		} ?? switch (path) {
+			'cockpit.sshPrompts.unlockMessage' => ({required Object keyPath, required Object connectionName}) => 'Desbloqueie ${keyPath} para conectar "${connectionName}".',
 			'cockpit.sshPrompts.keptInMemoryHint' => 'Mantida em memória até o Cockpit fechar. Para permitir que agentes usem esta conexão, ative "Salvar senha da chave" na conexão.',
 			'cockpit.sshPrompts.unlock' => 'Desbloquear',
 			'cockpit.projectsRail.workspaces' => 'Workspaces',
@@ -2431,6 +2454,7 @@ extension on TranslationsPtBr {
 			'cockpit.findBar.next' => 'Próximo (⏎)',
 			'cockpit.findBar.close' => 'Fechar (Esc)',
 			'cockpit.findBar.badPattern' => 'Padrão inválido',
+			'cockpit.findBar.counter' => ({required Object current, required Object total}) => '${current} de ${total}',
 			'cockpit.findBar.noResults' => 'Nenhum resultado',
 			'cockpit.contentSearch.sectionSearch' => 'BUSCA',
 			'cockpit.contentSearch.searchInFiles' => 'Buscar nos arquivos',
@@ -2453,6 +2477,13 @@ extension on TranslationsPtBr {
 			'cockpit.notifications.agentFinished' => 'Agente terminou',
 			'cockpit.notifications.open' => 'Abrir',
 			'cockpit.notifications.agentNeedsAction' => 'Agente precisa de você',
+			'cockpit.terminalLink.open' => 'Abrir',
+			'cockpit.terminalLink.revealFinder' => 'Mostrar no Finder',
+			'cockpit.terminalLink.revealExplorer' => 'Mostrar no Explorer',
+			'cockpit.terminalLink.revealFolder' => 'Abrir pasta',
+			'cockpit.terminalLink.copyPath' => 'Copiar caminho',
+			'cockpit.terminalLink.openLink' => 'Abrir link',
+			'cockpit.terminalLink.copyLink' => 'Copiar link',
 			'cockpit.terminal.cwdFallbackWarning' => ({required Object requested, required Object path}) => 'Aviso: a pasta "${requested}" não existe. Este terminal abriu em "${path}".',
 			'cockpit.terminal.workspaceEnvTracked' => ({required Object keys}) => 'Aviso: o .env.cockpit está rastreado pelo git (veio com o repositório). Injetado: ${keys}',
 			'cockpit.remoteHost.addHost' => 'Adicionar host remoto',
@@ -2720,6 +2751,9 @@ extension on TranslationsPtBr {
 			'settings.page.terminal.shellTitle' => 'Shell',
 			'settings.page.terminal.shellDesc' => 'Qual shell novas abas de terminal abrem. A seta ao lado do + ainda abre qualquer outro, só para aquela aba.',
 			'settings.page.terminal.noWslMessage' => 'Nenhuma distro WSL encontrada. Instale uma (wsl.exe --install) e reinicie o Cockpit para vê-la listada aqui.',
+			'settings.page.terminal.sectionBehavior' => 'Comportamento',
+			'settings.page.terminal.closeOnExitTitle' => 'Fechar a aba quando o shell encerrar',
+			'settings.page.terminal.closeOnExitDesc' => 'Quando um shell termina sozinho (exit, Ctrl-D), fecha a aba em vez de deixar um terminal morto.',
 			'settings.page.appearance.sectionTheme' => 'Tema',
 			'settings.page.appearance.themeTitle' => 'Tema',
 			'settings.page.appearance.themeDesc' => 'Cores do app, realce de código e paleta do terminal.',
@@ -2895,6 +2929,8 @@ extension on TranslationsPtBr {
 			'theme.error.reservedId' => 'Este tema usa o id de um tema nativo. Mude o "id" no arquivo e importe de novo.',
 			'theme.error.notAnObject' => ({required Object field}) => 'Esperava um objeto em "${field}".',
 			'theme.error.missingField' => ({required Object field}) => 'Falta o campo obrigatório "${field}".',
+			_ => null,
+		} ?? switch (path) {
 			'theme.error.badColor' => ({required Object value, required Object field}) => '"${value}" em "${field}" não é uma cor. Use #RGB, #RRGGBB ou #RRGGBBAA.',
 			'theme.error.unknownBase' => ({required Object value}) => 'Tema base "${value}" desconhecido em "extends".',
 			'theme.error.noVariants' => 'O tema não declara nenhum variant. Adicione "dark", "light" ou os dois em "variants".',
