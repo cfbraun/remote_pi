@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:cockpit/app/cockpit/domain/contracts/terminal_gateway.dart';
 import 'package:cockpit/app/core/utils/spawn_directory.dart';
@@ -115,6 +117,61 @@ void main() {
       // Aprovou → PreToolUse('working') com turno ainda ativo → volta a working.
       s.applyClaudeStatus(status: TerminalStatus.working, isTurnStart: false);
       expect(s.isWorking, isTrue);
+      await s.dispose();
+    });
+  });
+
+  group('TerminalSession — interrupt do usuário (ESC) limpa o spinner', () {
+    // O construtor liga `terminal.onOutput` ao detector de interrupt; alimentar
+    // esse callback simula o usuário digitando, sem precisar de uma view.
+    void typeRaw(TerminalSession s, String data) =>
+        s.terminal.onOutput!(Uint8List.fromList(utf8.encode(data)));
+
+    test('ESC cru (\\x1b) enquanto working volta a idle', () async {
+      final s = _session();
+      s.applyClaudeStatus(status: TerminalStatus.working, isTurnStart: true);
+      expect(s.isWorking, isTrue);
+      typeRaw(s, '\x1b');
+      expect(s.isWorking, isFalse, reason: 'ESC deve abortar o turno otimista');
+      await s.dispose();
+    });
+
+    test('ESC do kitty keyboard protocol (\\x1b[27u) também aborta', () async {
+      // Encoding do Ghostty/libghostty quando o app ativa o protocolo kitty —
+      // era exatamente o caso que o match só-`\\x1b` perdia (spinner eterno).
+      final s = _session();
+      s.applyClaudeStatus(status: TerminalStatus.working, isTurnStart: true);
+      typeRaw(s, '\x1b[27u');
+      expect(s.isWorking, isFalse);
+      await s.dispose();
+    });
+
+    test('ESC kitty com modificador/tipo-de-evento (\\x1b[27;1:3u) aborta', () async {
+      final s = _session();
+      s.applyClaudeStatus(status: TerminalStatus.working, isTurnStart: true);
+      typeRaw(s, '\x1b[27;1:3u');
+      expect(s.isWorking, isFalse);
+      await s.dispose();
+    });
+
+    test('controle negativo: ESC sem turno (idle) não força transição', () async {
+      final s = _session();
+      expect(s.isWorking, isFalse);
+      typeRaw(s, '\x1b');
+      expect(s.isWorking, isFalse);
+      await s.dispose();
+    });
+
+    test('controle negativo: seta pra cima (\\x1b[A) enquanto working NÃO aborta', () async {
+      // Discrimina a regex: uma CSI de seta não é ESC e não pode abortar o turno.
+      final s = _session();
+      s.applyClaudeStatus(status: TerminalStatus.working, isTurnStart: true);
+      typeRaw(s, '\x1b[A');
+      expect(
+        s.isWorking,
+        isTrue,
+        reason: 'só o ESC aborta, não sequências CSI de setas/função',
+      );
       await s.dispose();
     });
   });
